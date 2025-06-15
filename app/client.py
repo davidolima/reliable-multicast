@@ -3,6 +3,7 @@
 import socket
 import logging
 import threading
+from time import sleep
 
 from utils import constants
 
@@ -36,10 +37,28 @@ class Client:
     def is_connected(self) -> bool:
         return (self._socket is not None)
 
+    def disconnect(self) -> None:
+        if not self.is_connected():
+            logging.warn("Attempted to disconnect without a connection.")
+            return
+        assert (self._socket is not None) # NOTE: Just so LSP works properly
+
+        self._socket.shutdown(0)
+        self._socket.close()
+        del self._socket
+        self._socket = None
+
     def get_addr(self):
-        assert self._socket is not None, "Attempting to send message without a connection."
+        assert self._socket is not None, "No open sockets in this client"
         return self._socket.getsockname()
 
+    def crash(self, t: int = 0):
+        sleep(t)
+        id = str(self)
+        self.disconnect()
+        print(f"{id} crashed!")
+
+    
     def _construct_message(self, dest_addr: str, m: str) -> bytes:
 
         msg = str({
@@ -71,7 +90,7 @@ class Client:
                 data += block
                 if b'<eof>' in block:
                     break
-            print(f"{self} received:", data.decode(constants.MSG_ENCODING))
+            print(f"[{self}] Received message:", data.decode(constants.MSG_ENCODING))
             conn.close()
 
         except Exception as e:

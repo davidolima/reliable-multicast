@@ -6,12 +6,11 @@ logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
 from app.client import Client
 
 if __name__ == '__main__':
-    P = [Client(), Client()]
+    group = [Client(), Client()]
 
-    for p in P:
+    for p in group:
         print(p)
 
     m = 'Hello world!'
-
-    P[0].send(P[1].get_addr(), m)
+    group[0].send(group[1].get_addr(), m)
     #P[0].multicast(P[1:], m)
