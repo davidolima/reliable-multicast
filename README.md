@@ -16,7 +16,7 @@ Reste repositório contém o projeto prático produzido para a disciplina MATA88
 $ python3 ./main.py
 ```
 
-Alternativamente, abra diferentes terminais, e em cada um o comando
+Alternativamente, abra diferentes terminais, e em cada um execute o comando
 
 ``` sh
 $ python3 ./initialize_client.py
@@ -29,13 +29,13 @@ Para entrar numa interface de linha de comando (CLI) interativa para interagir c
  
  - `send`: A partir do protocolo multicast implementado, envia uma mensagem para os processos especificados.
    - Uso: 
-     - `>> send <message> [('ip1', addr1),('ip2', addr2),...]`
+     - `>> send <message> [('ip1', port1),('ip2', port2),...]`
    - Ex.: Enviar mensagem "hello-world!" para os processos de IP 0.0.0.0:12345 e 0.0.0.0:54321
      - `>> send hello-world! [('0.0.0.0', 12345),('0.0.0.0', 54321)]`
    
  - `sendcrash`: A partir do protocolo multicast implementado, envia uma mensagem para os processos especificados.
    - Uso: 
-     - `>> sendcrash <message> <successes> [(ip1, addr1),(ip2, addr2),...]`
+     - `>> sendcrash <message> <successes> [('ip1', port1),('ip2', port2),...]`
    - Ex.: Enviar mensagem "hello-world!" para os processos de IP 0.0.0.0:12345 e 0.0.0.0:54321 e falhar (crash) após o primeiro envio
      - `>> sendcrash hello-world! 1 [('0.0.0.0', 12345),('0.0.0.0', 54321)]`
 
