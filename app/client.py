@@ -146,7 +146,7 @@ class Client:
             return
 
         obj_m = literal_eval(m) # extrai dict da str recebida
-        logger.info(f"{self} Received message: {m}")
+        logger.info(f"{self} Received message: {obj_m['content']}")
 
         group: list[tuple] = obj_m['group']
         group.remove(self.get_addr()) # Remove si mesmo do grupo dos processos que devem receber a mensagem
