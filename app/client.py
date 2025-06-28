@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import socket
 import logging
 import threading
@@ -40,7 +41,7 @@ class Client:
 
     def _setup_socket(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._socket.bind(('0.0.0.0', 0))
+        self._socket.bind(('127.0.0.1', 0))
         self._socket.listen(1)
 
     def is_connected(self) -> bool:
@@ -52,8 +53,12 @@ class Client:
             return
         assert (self._socket is not None) # NOTE: Just so LSP works properly
 
-        self._socket.shutdown(0)
+        try:
+            self._socket.shutdown(0)  # Só se for TCP
+        except OSError:
+            pass  # Ignora erro se for UDP
         self._socket.close()
+
         del self._socket
         self._socket = None
 
@@ -66,7 +71,7 @@ class Client:
         id = str(self)
         self.disconnect()
         print(f"{id} crashed!")
-        quit(0)
+        os._exit(0)
     
     def _construct_message(self, dest_addr: tuple[str, int], m: str, **kargs) -> bytes:
         msg = str({
