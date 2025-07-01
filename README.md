@@ -29,13 +29,16 @@ Para entrar numa interface de linha de comando (CLI) interativa para interagir c
  
  - `send`: A partir do protocolo multicast implementado, envia uma mensagem para os processos especificados.
    - Uso: 
-     - `>> send <message> [('ip1', port1),('ip2', port2),...]`
-   - Ex.: Enviar mensagem "hello-world!" para os processos de IP 0.0.0.0:12345 e 0.0.0.0:54321
-     - `>> send hello-world! [('0.0.0.0', 12345),('0.0.0.0', 54321)]`
+     - `>> send <message> [('ip1',port1),('ip2',port2),...]`
+   - Ex.: Enviar mensagem "hello-world!" para os processos de IP 127.0.0.1:12345 e 127.0.0.1:54321
+     - `>> send hello-world! [('127.0.0.1',12345),('127.0.0.1',54321)]`
    
  - `sendcrash`: A partir do protocolo multicast implementado, envia uma mensagem para os processos especificados.
    - Uso: 
-     - `>> sendcrash <message> <successes> [('ip1', port1),('ip2', port2),...]`
-   - Ex.: Enviar mensagem "hello-world!" para os processos de IP 0.0.0.0:12345 e 0.0.0.0:54321 e falhar (crash) após o primeiro envio
-     - `>> sendcrash hello-world! 1 [('0.0.0.0', 12345),('0.0.0.0', 54321)]`
+     - `>> sendcrash <message> <successes> [('ip1',port1),('ip2',port2),...]`
+   - Ex.: Enviar mensagem "hello-world!" para os processos de IP 127.0.0.1:12345 e 127.0.0.1:54321 e falhar (crash) após o primeiro envio
+     - `>> sendcrash hello-world! 1 [('127.0.0.1',12345),('127.0.0.1',54321)]`
 
+- `test_multicast`: Valida o código com casos de teste automáticos para cumprir as funções do reliable multicast.
+   - Uso: 
+     - `>> pytest -v -s tests/test_multicast.py`
