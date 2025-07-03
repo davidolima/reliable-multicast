@@ -4,6 +4,7 @@ import os
 import socket
 import logging
 import threading
+import uuid
 from time import sleep
 from typing import *
 
@@ -76,8 +77,9 @@ class Client:
         if not simulate:
             os._exit(0)
 
-    def _construct_message(self, dest_addr: tuple[str, int], m: str, **kargs) -> bytes:
+    def _construct_message(self, dest_addr: tuple[str, int], m: str, message_id: str, **kargs) -> bytes:
         msg_dict = {
+            'message_id': message_id,
             'sender': self.get_addr(),
             'dest': dest_addr,
             'content': m,
@@ -109,7 +111,8 @@ class Client:
             return ''
 
     def send(self, dest_addr: tuple[str, int], message: str):
-        pkg = self._construct_message(dest_addr, message)
+        message_id = str(uuid.uuid4())
+        pkg = self._construct_message(dest_addr, message, message_id=message_id)
         self.send_raw(dest_addr, pkg)
 
     def send_raw(self, dest_addr: tuple[str, int], pkg: bytes):
@@ -121,17 +124,21 @@ class Client:
         except Exception as e:
             logger.error(f"{self} Error sending message: {e}")
 
-    def r_multicast(self, message: str, group: list[tuple], crash_after: Optional[int] = None, simulate: bool = False):
+    def r_multicast(self, message: str, group: list[tuple], crash_after: Optional[int] = None, simulate: bool = False, originated_locally: bool = False, message_id: Optional[str] = None):
+        if not message_id:
+            message_id = str(uuid.uuid4())
+
+        if not originated_locally:
+            pkg_self = self._construct_message(dest_addr=self.get_addr(), m=message, group=group, message_id=message_id)
+            self.r_deliver(pkg_self.decode(constants.MSG_ENCODING))
+            return
+
         send_count = 0
         for addr in group:
-            # skip sending to self
-            if addr == self.get_addr():
-                continue
-            # simulate crash after a number of sends
+            pkg = self._construct_message(dest_addr=addr, m=message, group=group, message_id=message_id)
             if crash_after is not None and send_count == crash_after:
                 self.crash(simulate=simulate)
                 return
-            pkg = self._construct_message(dest_addr=addr, m=message, group=group)
             self.send_raw(addr, pkg)
             send_count += 1
 
@@ -151,11 +158,10 @@ class Client:
             logger.warning(f"{self} Mensagem sem conteúdo: {raw_m}")
             return
 
-        msg_id = (sender, content)
-        if msg_id in self._delivered:
+        message_id = obj_m.get('message_id')
+        if message_id is None or message_id in self._delivered:
             return
-        self._delivered.add(msg_id)
-
+        self._delivered.add(message_id)
         self.received_messages.append(content)
         logger.info(f"{self} Received message: {content}")
 
@@ -164,5 +170,4 @@ class Client:
             group.remove(self.get_addr())
         except ValueError:
             pass
-        self.r_multicast(content, group)
-
+        self.r_multicast(content, group, originated_locally=True, message_id=message_id)
