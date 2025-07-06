@@ -7,6 +7,7 @@ import threading
 import uuid
 from time import sleep
 from typing import *
+from app.lamport_clock import LamportClock
 
 from ast import literal_eval
 
@@ -18,6 +19,7 @@ class Client:
     def __init__(self) -> None:
         self._socket: socket.socket | None = None
         self._thread: threading.Thread | None = None
+        self.clock = LamportClock()
 
         self._setup_socket()
         self._start_receive_loop()
@@ -83,6 +85,7 @@ class Client:
             'sender': self.get_addr(),
             'dest': dest_addr,
             'content': m,
+            'clock': self.clock.time,
             **kargs
         }
         msg = str(msg_dict).encode(constants.MSG_ENCODING)
@@ -119,7 +122,7 @@ class Client:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as send_sock:
                 send_sock.connect(dest_addr)
-                logger.info(f"{self} Sending message to {dest_addr}.")
+                logger.info(f"{self} Sending message to {dest_addr}. | Timestamp de Envio: {self.clock.time}")
                 send_sock.send(pkg)
         except Exception as e:
             logger.error(f"{self} Error sending message: {e}")
@@ -134,12 +137,14 @@ class Client:
             return
 
         send_count = 0
+        
         for addr in group:
             pkg = self._construct_message(dest_addr=addr, m=message, group=group, message_id=message_id)
             if crash_after is not None and send_count == crash_after:
                 self.crash(simulate=simulate)
                 return
             self.send_raw(addr, pkg)
+            self.clock.increment()
             send_count += 1
 
     def r_deliver(self, raw_m: str):
@@ -161,9 +166,13 @@ class Client:
         message_id = obj_m.get('message_id')
         if message_id is None or message_id in self._delivered:
             return
+        
+        received_time = obj_m.get('clock', 0)
+        self.clock.update(received_time)
+
         self._delivered.add(message_id)
         self.received_messages.append(content)
-        logger.info(f"{self} Received message: {content}")
+        logger.info(f"{self} Received message: {content} | Timestamp de Entrega: {self.clock.time}")
 
         group: list[tuple] = obj_m.get('group', [])
         try:
