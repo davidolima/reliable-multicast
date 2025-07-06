@@ -14,4 +14,4 @@ if __name__ == '__main__':
         print(p)
 
     m = 'Hello world!'
-    client_group[0].r_multicast(m, addrs,  crash_after=1)
+    client_group[0].r_multicast(m, addrs)
