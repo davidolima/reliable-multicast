@@ -32,7 +32,8 @@ def interpret_cmd(client: Client, raw_cmd: str) -> bool:
                 return show_help()
 
             
-            client.r_multicast(msg, group)
+            client.r_multicast(msg, group, originated_locally=True)
+
 
         case 'sendcrash':
             if len(cmd) < 4:
@@ -46,7 +47,7 @@ def interpret_cmd(client: Client, raw_cmd: str) -> bool:
                 print(f"[ERROR] Error reading arguments: {e}")
                 return show_help()
 
-            client.r_multicast(msg, group, crash_after=crash_after)
+            client.r_multicast(msg, group, crash_after=crash_after, originated_locally=True)
 
 
     return True

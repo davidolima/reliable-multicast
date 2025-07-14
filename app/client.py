@@ -71,7 +71,7 @@ class Client:
         assert self._socket is not None, "No open sockets in this client"
         return self._socket.getsockname()
 
-    def crash(self, t: int = 0, simulate=False):
+    def crash(self, t: int = 0, simulate: bool = False):
         sleep(t)
         id_str = str(self)
         self.disconnect()
@@ -127,7 +127,13 @@ class Client:
         except Exception as e:
             logger.error(f"{self} Error sending message: {e}")
 
-    def r_multicast(self, message: str, group: list[tuple], crash_after: Optional[int] = None, simulate: bool = False, originated_locally: bool = False, message_id: Optional[str] = None):
+    def r_multicast(self,
+                    message: str,
+                    group: list[tuple[str, int]],
+                    crash_after: Optional[int] = None,
+                    simulate: bool = False,
+                    originated_locally: bool = False,
+                    message_id: Optional[str] = None):
         if not message_id:
             message_id = str(uuid.uuid4())
 
@@ -137,14 +143,15 @@ class Client:
             return
 
         send_count = 0
-        
+
         for addr in group:
             pkg = self._construct_message(dest_addr=addr, m=message, group=group, message_id=message_id)
             if crash_after is not None and send_count == crash_after:
                 self.crash(simulate=simulate)
                 return
-            self.send_raw(addr, pkg)
+            # Increment Lamport clock before sending to reflect correct timestamp
             self.clock.increment()
+            self.send_raw(addr, pkg)
             send_count += 1
 
     def r_deliver(self, raw_m: str):
@@ -166,7 +173,7 @@ class Client:
         message_id = obj_m.get('message_id')
         if message_id is None or message_id in self._delivered:
             return
-        
+
         received_time = obj_m.get('clock', 0)
         self.clock.update(received_time)
 
@@ -179,4 +186,4 @@ class Client:
             group.remove(self.get_addr())
         except ValueError:
             pass
-        self.r_multicast(content, group, originated_locally=True, message_id=message_id)
+        self.r_multicast(content, group, crash_after=None, simulate=False, originated_locally=True, message_id=message_id)

@@ -3,7 +3,6 @@
 import logging
 logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
 
-from app import client
 from app.client import Client
 
 if __name__ == '__main__':
@@ -14,4 +13,5 @@ if __name__ == '__main__':
         print(p)
 
     m = 'Hello world!'
-    client_group[0].r_multicast(m, addrs)
+    client_group[0].r_multicast(m, addrs, originated_locally=True)
+
