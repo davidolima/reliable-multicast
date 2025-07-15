@@ -34,7 +34,6 @@ def interpret_cmd(client: Client, raw_cmd: str) -> bool:
             
             client.r_multicast(msg, group, originated_locally=True)
 
-
         case 'sendcrash':
             if len(cmd) < 4:
                 return show_help()
@@ -49,11 +48,21 @@ def interpret_cmd(client: Client, raw_cmd: str) -> bool:
 
             client.r_multicast(msg, group, crash_after=crash_after, originated_locally=True)
 
+        case 'help':
+            return show_help()
+
+        case '':
+            return True
+
+        case _:
+            return show_help()
+
 
     return True
 
 def show_help() -> Literal[True]:
     print("Available commands:")
+    print('  help - Shows this help message')
     print('  quit - Exits program')
     print('  send <message> [(ip1, addr1),(ip2, addr2),...] - Multicasts <message> to specified group of processes.')
     print('  sendcrash <message> <successes> [(ip1, addr1),(ip2, addr2),...] - Multicasts <message> to specified group of processes, but crashes after sending to <successes> processes.')
